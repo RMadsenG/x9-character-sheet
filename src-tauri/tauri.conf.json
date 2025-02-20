@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "x9-character-sheet",
-        "width": 800,
-        "height": 600
+        "title": "X9 Character Sheet",
+        "width": 1500,
+        "maxWidth": 1500,
+        "minWidth": 1500,
+        "height": 800,
+        "maxHeight": 800,
+        "minHeight": 800
       }
     ],
     "security": {
