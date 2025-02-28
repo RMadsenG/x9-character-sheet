@@ -1,7 +1,6 @@
 import "./App.css";
 import CombatSkillsTable from "./CombatSkillsTable";
 import Nameplate from "./Nameplate";
-import RPSkillsTable from "./RPSkillsTable";
 
 function App() {
 
@@ -17,7 +16,6 @@ function App() {
         <Nameplate />
       </div>
       <CombatSkillsTable />
-      <RPSkillsTable />
     </main>
   );
 }
