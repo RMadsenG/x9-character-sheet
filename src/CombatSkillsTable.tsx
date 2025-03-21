@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PointAllocation from "./PointAllocation";
+import { POINT_TYPE } from "./Constants";
 
 const SKILL_MENUS = [
     {
@@ -81,7 +82,7 @@ const SKILL_MENUS = [
 ]
 const MAX_INDEX = SKILL_MENUS.length - 1
 
-function CombatSkillsTable() {
+function CombatSkillsTable({ getPointFunc }: { getPointFunc: ( pointType: POINT_TYPE) => (key: string, points: number) => boolean }) {
     let [index, setIndex] = useState(0)
 
     let one = SKILL_MENUS[index]
@@ -98,6 +99,7 @@ function CombatSkillsTable() {
     }
 
     let type_table = one['skill_subtypes'].map((subtype, index) =>
+        // For each skill type (hard, soft)
         <td key={index} valign="top" className="">
             <table className="">
                 <thead>
@@ -113,15 +115,12 @@ function CombatSkillsTable() {
                         <th className="p-2">LvL</th>
                     </tr>
                     {
+                        // For each skill
                         subtype['list'].map(e =>
                             <tr key={e[0] + index}>
                                 <td className="border p-px">{e[0]}</td>
                                 <td className="border p-px">{e[1]}</td>
-                                <td className="border p-px"><PointAllocation/></td>
-                                <td className="border p-px"><PointAllocation/></td>
-
-                                <td className="border p-px">LvL</td>
-
+                                <PointAllocation key={subtype['subtype_name'] + '_' + e[0]} name={subtype['subtype_name'] + '_' + e[0]} point_types={[POINT_TYPE.VALOR, POINT_TYPE.FREE]} getPointFunc={getPointFunc} />
                             </tr>
                         )
                     }
