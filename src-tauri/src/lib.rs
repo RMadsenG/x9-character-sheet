@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
 use std::sync::Mutex;
+use tauri::{AppHandle, Emitter};
 
 type PointMap = HashMap<String, i32>;
 struct PointBank {
@@ -55,26 +55,45 @@ impl PointBank {
 
 #[tauri::command]
 fn set_point(
+    app: AppHandle,
     name: &str,
     point_type: &str,
     points: i32,
     state: tauri::State<'_, Mutex<PointBank>>,
-) -> bool {
+) -> Result<i32, String> {
     let mut state = state.lock().unwrap();
     let free: i32 = state.get_free_of_type(point_type, name);
 
     if points > free {
-        return false;
+        app.emit("update-failed", point_type).unwrap();
+        return Err("No free points".to_string());
     }
 
     state.insert_of_type(name, point_type, points);
-    return  true;
+    app.emit("update-points", ()).unwrap();
+    return Ok(points);
 }
 
 #[tauri::command]
-fn get_point(name: &str, point_type: &str, state: tauri::State<'_, Mutex<PointBank>>) -> i32 {
+fn get_free(point_type: &str, state: tauri::State<'_, Mutex<PointBank>>) -> Result<i32, String> {
     let state = state.lock().unwrap();
-    return state.get_point_of_type(name, point_type);
+
+    let free: i32 = state.get_free_of_type(point_type, "");
+
+    return Ok(free);
+}
+
+#[tauri::command]
+fn get_point(
+    name: &str,
+    point_type: &str,
+    state: tauri::State<'_, Mutex<PointBank>>,
+) -> Result<i32, String> {
+    let state = state.lock().unwrap();
+
+    let points: i32 = state.get_point_of_type(name, point_type);
+
+    return Ok(points);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -86,7 +105,7 @@ pub fn run() {
             valor_points: HashMap::from([("max".to_string(), 100)]),
         }))
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_point, set_point])
+        .invoke_handler(tauri::generate_handler![get_point, set_point, get_free])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

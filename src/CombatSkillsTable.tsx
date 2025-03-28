@@ -82,10 +82,11 @@ const SKILL_MENUS = [
 ]
 const MAX_INDEX = SKILL_MENUS.length - 1
 
-function CombatSkillsTable({ getPointFunc }: { getPointFunc: ( pointType: POINT_TYPE) => (key: string, points: number) => boolean }) {
+function CombatSkillsTable() {
     let [index, setIndex] = useState(0)
 
     let one = SKILL_MENUS[index]
+    const point_type = index == 0 ? POINT_TYPE.VALOR : POINT_TYPE.RENOWN
 
     function up() {
         if (index < MAX_INDEX) {
@@ -97,7 +98,6 @@ function CombatSkillsTable({ getPointFunc }: { getPointFunc: ( pointType: POINT_
             setIndex(index - 1)
         }
     }
-
     let type_table = one['skill_subtypes'].map((subtype, index) =>
         // For each skill type (hard, soft)
         <td key={index} valign="top" className="">
@@ -120,7 +120,7 @@ function CombatSkillsTable({ getPointFunc }: { getPointFunc: ( pointType: POINT_
                             <tr key={e[0] + index}>
                                 <td className="border p-px">{e[0]}</td>
                                 <td className="border p-px">{e[1]}</td>
-                                <PointAllocation key={subtype['subtype_name'] + '_' + e[0]} name={subtype['subtype_name'] + '_' + e[0]} point_types={[POINT_TYPE.VALOR, POINT_TYPE.FREE]} getPointFunc={getPointFunc} />
+                                <PointAllocation key={subtype['subtype_name'] + '_' + e[0]} name={subtype['subtype_name'] + '_' + e[0]} point_types={[point_type, POINT_TYPE.FREE]} />
                             </tr>
                         )
                     }
@@ -128,8 +128,6 @@ function CombatSkillsTable({ getPointFunc }: { getPointFunc: ( pointType: POINT_
             </table>
         </td>
     )
-
-
 
     return (
         <table className="text-center border-separate border">

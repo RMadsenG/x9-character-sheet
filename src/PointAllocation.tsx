@@ -1,38 +1,45 @@
-import { useState } from "react";
-import { POINT_TYPE } from "./Constants";
+import { useEffect, useState } from "react";
+import { POINT_COLORS, POINT_TYPE } from "./Constants";
+import { invoke } from '@tauri-apps/api/core';
 
 
+async function get_point(name: string, point_type: POINT_TYPE): Promise<number> {
+    const points: number = await invoke('get_point', { name: name, pointType: point_type })
+    return points;
+}
 
-function validateAndSet(name: string, setFunc: (value: number) => void, setPointFunc: ((key: string, points: number) => boolean)) {
+function OnePoint({ name, point_type }: { name: string, point_type: POINT_TYPE }) {
+    const [xPoints, setXPoints] = useState<number | string>(0)
 
+    useEffect(() => {
+        get_point(name, point_type).then(setXPoints);
+    }, []);
 
-    return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
-        const value = onChangeEvent.currentTarget.value
-        if (!value) {
-            setPointFunc(name, 0)
-            setFunc(0)
-            return
+    function validateAndSet() {
+        return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
+            const value = parseInt(onChangeEvent.currentTarget.value)
+            invoke('set_point', { name: name, pointType: point_type, points: value }).then(() => setXPoints(value)).catch(console.log);
         }
-        const num = parseInt(value)
-        if (isNaN(num)) return
-
-        if (num / 1000 > 1) {
-            return
-        }
-        if (setPointFunc(name, num)) setFunc(num)
     }
+    function onSelect() {
+        return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
+            const value = parseInt(onChangeEvent.currentTarget.value)
+            if (value == 0) setXPoints('');
+        }
+    }
+    function onBlur() {
+        return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
+            const value = parseInt(onChangeEvent.currentTarget.value)
+            if (!value)
+                invoke('set_point', { name: name, pointType: point_type, points: 0 }).then(() => setXPoints(0)).catch(console.log);;
+        }
+    }
+    return <td className="border p-px"><input className={POINT_COLORS[point_type]} name={name} value={xPoints} size={3} onBlur={onBlur()} onFocus={onSelect()} onChange={validateAndSet()} /></td>
 }
 
-
-function OnePoint({ name, setPointFunc }: { name: string, point_type: POINT_TYPE, setPointFunc: (key: string, value: number) => boolean }) {
-    const [xPoints, setXPoints] = useState<number>(0)
-
-    return <td className="border p-px"><input name={name} value={xPoints} size={3} onChange={validateAndSet(name, setXPoints, setPointFunc)} /></td>
-}
-
-function PointAllocation({ name, point_types, getPointFunc }: { name: string, point_types: POINT_TYPE[], getPointFunc: (pointType: POINT_TYPE) => (key: string, points: number) => boolean }) {
+function PointAllocation({ name, point_types }: { name: string, point_types: POINT_TYPE[] }) {
     const input_map = point_types.map(type =>
-        <OnePoint name={name} key={name + type} point_type={type} setPointFunc={getPointFunc(type)} />
+        <OnePoint name={name} key={name + type} point_type={type} />
     )
 
     return (<>
