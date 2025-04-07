@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter};
-
+use tauri::{
+    menu::{MenuBuilder, SubmenuBuilder},
+    utils::config::WindowConfig,
+    AppHandle, Emitter, WindowEvent,
+};
 type PointMap = HashMap<String, i32>;
 struct PointBank {
     free_points: PointMap,
@@ -99,6 +102,48 @@ fn get_point(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .menu(|app| {
+            let text_menu = SubmenuBuilder::new(app, "File")
+                .text("new_character", "New Character")
+                .build()?;
+            MenuBuilder::new(app).items(&[&text_menu]).build()
+        })
+        .on_menu_event(move |app: &tauri::AppHandle, event| {
+            println!("menu event: {:?}", event.id());
+
+            match event.id().0.as_str() {
+                "new_character" => {
+                    let config: Vec<WindowConfig> = app
+                        .config()
+                        .app
+                        .windows // Get Struct Vector
+                        .clone() // Clone So into_iter can use it?
+                        .into_iter() // So we can filter it
+                        .filter(|x| x.label == "new_characater") // Filter it
+                        .collect::<Vec<WindowConfig>>(); // De iterator it.
+
+                    // I dont understand why I need to split this in two?
+                    // Collect deletes the value or smth if this is all one line?
+                    let config = config.get(0).unwrap();
+
+                    // Create new Window
+                    tauri::WebviewWindowBuilder::from_config(app, config)
+                        .unwrap()
+                        .build()
+                        .unwrap()
+                        .on_window_event(|event| match event {
+                            // Re enable main window after destroyed
+                            WindowEvent::Destroyed => {}
+                            _ => {}
+                        });
+                    // disable main window
+                    // app.get_webview_window("main").unwrap().set_enabled(false).unwrap();
+                }
+                _ => {
+                    println!("unexpected menu event");
+                }
+            }
+        })
         .manage(Mutex::new(PointBank {
             free_points: HashMap::from([("max".to_string(), 100)]),
             renown_points: HashMap::from([("max".to_string(), 100)]),

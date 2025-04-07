@@ -13,12 +13,22 @@
     "windows": [
       {
         "title": "X9 Character Sheet",
+        "label": "main",
         "width": 1500,
-        "maxWidth": 1500,
-        "minWidth": 1500,
         "height": 800,
-        "maxHeight": 800,
-        "minHeight": 800
+        "resizable": false,
+        "focus": false
+      },
+      {
+        "title": "New Character",
+        "label": "new_characater",
+        "width": 1500,
+        "height": 800,
+        "resizable": false,
+        "parent": "main",
+        "focus": false,
+        "url": "newchar.html",
+        "create": false
       }
     ],
     "security": {
