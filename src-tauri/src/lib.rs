@@ -129,6 +129,7 @@ pub fn run() {
                     // Create new Window
                     tauri::WebviewWindowBuilder::from_config(app, config)
                         .unwrap()
+                        .menu(MenuBuilder::new(app).build().unwrap())
                         .build()
                         .unwrap()
                         .on_window_event(|event| match event {
