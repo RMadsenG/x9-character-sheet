@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use tauri::{
     menu::{MenuBuilder, SubmenuBuilder},
     utils::config::WindowConfig,
-    AppHandle, Emitter, WindowEvent,
+    AppHandle, Emitter, Manager, WindowEvent,
 };
 type PointMap = HashMap<String, i32>;
 struct PointBank {
@@ -108,7 +108,7 @@ pub fn run() {
                 .build()?;
             MenuBuilder::new(app).items(&[&text_menu]).build()
         })
-        .on_menu_event(move |app: &tauri::AppHandle, event| {
+        .on_menu_event(|app: &tauri::AppHandle, event| {
             println!("menu event: {:?}", event.id());
 
             match event.id().0.as_str() {
@@ -127,18 +127,29 @@ pub fn run() {
                     let config = config.get(0).unwrap();
 
                     // Create new Window
+                    let handle: AppHandle = app.app_handle().clone();
+
                     tauri::WebviewWindowBuilder::from_config(app, config)
                         .unwrap()
                         .menu(MenuBuilder::new(app).build().unwrap())
                         .build()
                         .unwrap()
-                        .on_window_event(|event| match event {
-                            // Re enable main window after destroyed
-                            WindowEvent::Destroyed => {}
-                            _ => {}
+                        .on_window_event(move |event| {
+
+                            match event {
+                                // Re enable main window after destroyed
+                                WindowEvent::Destroyed => {
+                                    handle
+                                        .get_webview_window("main")
+                                        .unwrap()
+                                        .set_enabled(true)
+                                        .unwrap();
+                                }
+                                _ => {}
+                            }
                         });
                     // disable main window
-                    // app.get_webview_window("main").unwrap().set_enabled(false).unwrap();
+                    app.get_webview_window("main").unwrap().set_enabled(false).unwrap();
                 }
                 _ => {
                     println!("unexpected menu event");
