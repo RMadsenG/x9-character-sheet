@@ -22,8 +22,8 @@
       {
         "title": "New Character",
         "label": "new_characater",
-        "width": 1500,
-        "height": 800,
+        "width": 600,
+        "height": 300,
         "resizable": false,
         "parent": "main",
         "focus": false,

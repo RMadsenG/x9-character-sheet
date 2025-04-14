@@ -33,6 +33,7 @@ function PointBank() {
         get_free(POINT_TYPE.RENOWN).then(setFreeRenown)
 
         // Listen for subsequent updates
+        // Must be in useEffect to avoid multiple listens
         const unlisten_upgrade = listen('update-points', () => {
             get_point('max', POINT_TYPE.FREE).then(setMaxFree)
             get_point('max', POINT_TYPE.VALOR).then(setMaxValor)

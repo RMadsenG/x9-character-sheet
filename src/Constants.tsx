@@ -4,6 +4,20 @@ export const enum POINT_TYPE {
     RENOWN = "renown"
 }
 
+export type Character = {
+    name: string,
+    race: Race
+}
+export type RaceList = Race[]
+export type Race = {
+    name: string,
+    id: string,
+    starting_health: number,
+    starting_speed: number,
+    starting_mana: number,
+};
+
+
 export const POINT_COLORS = {
     [POINT_TYPE.FREE]: "font-bold text-zinc-500",
     [POINT_TYPE.VALOR]: "font-bold text-amber-500",
