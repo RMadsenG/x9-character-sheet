@@ -17,7 +17,12 @@ function OnePoint({ name, point_type }: { name: string, point_type: POINT_TYPE }
 
     function validateAndSet() {
         return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
-            const value = parseInt(onChangeEvent.currentTarget.value)
+            let value: number | string = onChangeEvent.currentTarget.value;
+            if (value) {
+                value = parseInt(value)
+            } else {
+                value = 0
+            }
             invoke('set_point', { name: name, pointType: point_type, points: value }).then(() => setXPoints(value)).catch(console.log);
         }
     }
@@ -27,6 +32,8 @@ function OnePoint({ name, point_type }: { name: string, point_type: POINT_TYPE }
             if (value == 0) setXPoints('');
         }
     }
+
+    // If its blank when clicked off, set to 0
     function onBlur() {
         return (onChangeEvent: React.FormEvent<HTMLInputElement>) => {
             const value = parseInt(onChangeEvent.currentTarget.value)

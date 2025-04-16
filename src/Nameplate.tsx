@@ -5,14 +5,13 @@ import { Character } from "./Constants";
 
 function Nameplate() {
     const [name, setName] = useState<string>("Horatio Cornbad all  Mc'goon Fart Fartmc")
-    const [race, setRace] = useState<string>("Frog")
+    const [species, setSpecies] = useState<string>("Frog")
 
     function get_char() {
-        console.log("hi")
-        invoke<Character>('get_char').then((character: Character) => { 
+        invoke<Character>('get_char').then((character: Character) => {
             console.log(character)
             setName(character.name)
-            setRace(character.race.name)
+            setSpecies(character.species.name)
         });
 
     }
@@ -27,14 +26,14 @@ function Nameplate() {
         };
     }, [])
 
-    console.log("name " +name)
+    console.log("name " + name)
     let class_string = "text-5xl"
     let split_names = name.split(" ")
     let len = split_names.length
     let longest = split_names.sort((a: string, b: string) => { return b.length - a.length })[0]
     let longest_length = longest.length
 
-    
+
     if (len > 12) {
         class_string = "text-l"
     } else if (len > 10) {
@@ -52,7 +51,7 @@ function Nameplate() {
                 <h1 className={class_string + " w-fit mr-3"}>{name}</h1>
                 <button className="rounded-xl px-2 py-1 my-auto outline-2" type="button" value="hi" >Info</button>
             </div>
-            <p>{race}</p>
+            <p>{species}</p>
         </div>
     );
 }

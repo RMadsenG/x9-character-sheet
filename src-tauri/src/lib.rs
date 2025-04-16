@@ -1,15 +1,15 @@
-mod default_races;
+mod default_species;
 mod types;
 
-use std::sync::Mutex;
 use std::collections::HashMap;
+use std::sync::Mutex;
 use tauri::ipc::{InvokeBody, Response};
 use tauri::{
     menu::{MenuBuilder, SubmenuBuilder},
     utils::config::WindowConfig,
     AppHandle, Emitter, Manager, WindowEvent,
 };
-use types::{Character, PointBank, Race, Races};
+use types::{Character, PointBank, Species, SpeciesV};
 
 #[tauri::command]
 fn set_point(
@@ -35,21 +35,21 @@ fn set_point(
 #[tauri::command]
 fn set_new_char(
     name: &str,
-    race_id: &str,
+    species_id: &str,
     character_state: tauri::State<'_, Mutex<Character>>,
-    race_list: tauri::State<'_, Races>,
+    species_list: tauri::State<'_, SpeciesV>,
 ) -> Response {
-    let race: Vec<Race> = race_list
+    let species: SpeciesV = species_list
         .inner()
         .clone()
         .into_iter()
-        .filter(|x| x.id == race_id)
-        .collect::<Vec<Race>>();
-    let race: Race = race.get(0).unwrap().to_owned();
+        .filter(|x| x.id == species_id)
+        .collect::<SpeciesV>();
+    let species: Species = species.get(0).unwrap().to_owned();
     println!("set name: {}", name);
     let new_char = Character {
         name: name.to_string(),
-        race: race,
+        species: species,
     };
     *character_state.lock().unwrap() = new_char.clone();
     let a: InvokeBody = serde_json::to_value(new_char).unwrap().into();
@@ -59,14 +59,14 @@ fn set_new_char(
 #[tauri::command]
 fn get_char(state: tauri::State<'_, Mutex<Character>>) -> Response {
     println!("get name: {}", state.lock().unwrap().name);
-    let race: InvokeBody = serde_json::to_value(state.inner()).unwrap().into();
-    Response::new(race)
+    let species: InvokeBody = serde_json::to_value(state.inner()).unwrap().into();
+    Response::new(species)
 }
 
 #[tauri::command]
-fn get_races(state: tauri::State<'_, Races>) -> Response {
-    let races: InvokeBody = serde_json::to_value(state.inner()).unwrap().into();
-    Response::new(races)
+fn get_species(state: tauri::State<'_, SpeciesV>) -> Response {
+    let species: InvokeBody = serde_json::to_value(state.inner()).unwrap().into();
+    Response::new(species)
 }
 
 #[tauri::command]
@@ -96,10 +96,10 @@ fn get_point(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let default_races: Vec<Race> = default_races::get_default_races();
+    let default_species: SpeciesV = default_species::get_default_species();
     let current_char = Character {
         name: "Horatio Cornball".to_string(),
-        race: Race {
+        species: Species {
             name: "Human".to_string(),
             id: "human".to_string(),
             starting_health: 10,
@@ -171,14 +171,14 @@ pub fn run() {
             renown_points: HashMap::from([("max".to_string(), 100)]),
             valor_points: HashMap::from([("max".to_string(), 100)]),
         }))
-        .manage(default_races)
+        .manage(default_species)
         .manage(Mutex::new(current_char))
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_point,
             set_point,
             get_free,
-            get_races,
+            get_species,
             get_char,
             set_new_char
         ])

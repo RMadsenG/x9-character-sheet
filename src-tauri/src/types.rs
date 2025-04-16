@@ -1,22 +1,19 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 type PointMap = HashMap<String, i32>;
 
-pub type Races = Vec<Race>;
+pub type SpeciesV = Vec<Species>;
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Character {
-    pub name:String,
-    pub race: Race,
+    pub name: String,
+    pub species: Species,
 }
 
-
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
-pub struct Race {
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Species {
     pub name: String,
     pub id: String,
     pub starting_health: i32,
@@ -24,14 +21,11 @@ pub struct Race {
     pub starting_mana: i32,
 }
 
-
-
 pub struct PointBank {
     pub free_points: PointMap,
     pub valor_points: PointMap,
     pub renown_points: PointMap,
 }
-
 
 impl PointBank {
     pub fn get_point_of_type(&self, name: &str, point_type: &str) -> i32 {

@@ -6,10 +6,10 @@ export const enum POINT_TYPE {
 
 export type Character = {
     name: string,
-    race: Race
+    species: Species
 }
-export type RaceList = Race[]
-export type Race = {
+export type SpeciesList = Species[]
+export type Species = {
     name: string,
     id: string,
     starting_health: number,
