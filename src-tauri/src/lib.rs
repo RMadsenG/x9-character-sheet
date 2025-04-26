@@ -11,6 +11,9 @@ use tauri::{
 };
 use types::{Character, PointBank, Species, SpeciesV};
 
+// All skills are matched with their parent trait. 
+// Your skill level cannot exceed the level of the parent trait. 
+// For example, you cannot have Two Handed Blade (strength) at level 45 if your Strength trait is only level 30.
 #[tauri::command]
 fn set_point(
     app: AppHandle,
@@ -20,9 +23,12 @@ fn set_point(
     state: tauri::State<'_, Mutex<PointBank>>,
 ) -> Result<i32, String> {
     let mut state = state.lock().unwrap();
+
+    let current_points = state.get_point_of_type(name, point_type);
     let free: i32 = state.get_free_of_type(point_type, name);
 
-    if points > free {
+    // Fail if Using more points than free AND if increasing points
+    if points > free && points > current_points {
         app.emit("update-failed", point_type).unwrap();
         return Err("No free points".to_string());
     }
@@ -30,6 +36,17 @@ fn set_point(
     state.insert_of_type(name, point_type, points);
     app.emit("update-points", ()).unwrap();
     return Ok(points);
+}
+
+#[tauri::command]
+fn set_max(
+    point_type: &str,
+    points: i32,
+    state: tauri::State<'_, Mutex<PointBank>>,
+) -> Result<(), String> {
+    let mut state = state.lock().unwrap();
+    state.set_max(point_type, points);
+    return Ok(());
 }
 
 #[tauri::command]
@@ -93,6 +110,18 @@ fn get_point(
 
     return Ok(points);
 }
+
+#[tauri::command]
+fn get_level(
+    name: &str,
+    point_type: Vec<&str>,
+    state: tauri::State<'_, Mutex<PointBank>>,
+) -> Result<i32, String> {
+    let state = state.lock().unwrap();
+    let level: i32 = state.points_to_level(name, point_type);
+    return Ok(level);
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -180,7 +209,9 @@ pub fn run() {
             get_free,
             get_species,
             get_char,
-            set_new_char
+            set_new_char,
+            get_level,
+            set_max
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
