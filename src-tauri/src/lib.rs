@@ -9,10 +9,10 @@ use tauri::{
     utils::config::WindowConfig,
     AppHandle, Emitter, Manager, WindowEvent,
 };
-use types::{Character, PointBank, Species, SpeciesV};
+use types::{Character, HigherSkill, PointBank, Species, SpeciesV};
 
-// All skills are matched with their parent trait. 
-// Your skill level cannot exceed the level of the parent trait. 
+// All skills are matched with their parent trait.
+// Your skill level cannot exceed the level of the parent trait.
 // For example, you cannot have Two Handed Blade (strength) at level 45 if your Strength trait is only level 30.
 #[tauri::command]
 fn set_point(
@@ -20,16 +20,43 @@ fn set_point(
     name: &str,
     point_type: &str,
     points: i32,
+    parent_traits: Option<Vec<&str>>,
     state: tauri::State<'_, Mutex<PointBank>>,
 ) -> Result<i32, String> {
     let mut state = state.lock().unwrap();
 
-    let current_points = state.get_point_of_type(name, point_type);
-    let free: i32 = state.get_free_of_type(point_type, name);
+    let current_points: i32 = state.get_point_of_type(name, point_type);
+    let diff: i32 = points - current_points;
+
+    let free: i32 = state.get_free_of_type(point_type);
+
+    // Some things can only be set if the parent trait is high enough
+    // I should have a state that holds trait and skills that references the PointBank.
+    // That way i dont have to do that logic here.  It would also automatically add 1 to traits for me
+    if let Some(parent_traits) = parent_traits {
+        let mut ok: Option<&str> = None;
+
+        let new_points: i32 = state.get_all_points(name) + diff;
+        let new_level: i32 = state.points_to_level(new_points);
+
+        for pt in &parent_traits {
+            let trait_name = &("trait_".to_owned() + pt);
+            let parent_level: i32 = 1 + state.get_level(trait_name);
+            println!("{trait_name} {parent_level} {new_level}");
+            if parent_level >= new_level {
+                ok = Some(pt);
+                break;
+            }
+        }
+        if ok.is_none() {
+            app.emit("trait-to-weak", parent_traits).unwrap();
+            return Err("Parent trait too low".to_string());
+        }
+    }
 
     // Fail if Using more points than free AND if increasing points
-    if points > free && points > current_points {
-        app.emit("update-failed", point_type).unwrap();
+    if diff > free && points > current_points {
+        app.emit("not-enough-points", point_type).unwrap();
         return Err("No free points".to_string());
     }
 
@@ -93,7 +120,7 @@ fn get_free(
 ) -> Result<i32, String> {
     let state = state.lock().unwrap();
 
-    let free: i32 = state.get_free_of_type(point_type, "");
+    let free: i32 = state.get_free_of_type(point_type);
 
     return Ok(free);
 }
@@ -112,20 +139,24 @@ fn get_point(
 }
 
 #[tauri::command]
-fn get_level(
-    name: &str,
-    point_type: Vec<&str>,
-    state: tauri::State<'_, Mutex<PointBank>>,
-) -> Result<i32, String> {
+fn get_level(name: &str, state: tauri::State<'_, Mutex<PointBank>>) -> Result<i32, String> {
     let state = state.lock().unwrap();
-    let level: i32 = state.points_to_level(name, point_type);
+
+    let level: i32 = state.get_level(name);
+
     return Ok(level);
 }
 
+#[tauri::command]
+fn get_skill_table() -> Vec<HigherSkill> {
+    return default_species::get_default_skill_table();
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let default_species: SpeciesV = default_species::get_default_species();
+
+    // Setup Initial Character
     let current_char = Character {
         name: "Horatio Cornball".to_string(),
         species: Species {
@@ -211,7 +242,8 @@ pub fn run() {
             get_char,
             set_new_char,
             get_level,
-            set_max
+            set_max,
+            get_skill_table
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

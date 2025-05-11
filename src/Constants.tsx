@@ -4,6 +4,14 @@ export const enum POINT_TYPE {
     RENOWN = "renown"
 }
 
+export const enum TRAIT_TYPE {
+    STRENGTH = "Strength",
+    FINESSE = "Finesse",
+    PERCEPTION = "Perception",
+    LOGIC = "Logic",
+    CHARACTER = "Character"
+}
+
 export type Character = {
     name: string,
     species: Species
@@ -17,6 +25,24 @@ export type Species = {
     starting_mana: number,
 };
 
+
+export type HigherSkill = {
+    id: string,
+    title: string,
+    skill_subtypes: [SkillSubtype],
+}
+
+export type SkillSubtype = {
+    id: string,
+    subtype_name: string,
+    skills: [Skill],
+}
+
+export type Skill = {
+    id: string,
+    name: string,
+    parent_trait: [TRAIT_TYPE],
+}
 
 export const POINT_COLORS = {
     [POINT_TYPE.FREE]: "font-bold text-zinc-500",

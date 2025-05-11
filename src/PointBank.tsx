@@ -84,7 +84,7 @@ function PointBank() {
         });
 
         let timer: number = 0;
-        const unlisten_failed = listen<string>('update-failed', (point_type) => {
+        const unlisten_failed = listen<string>('not-enough-points', (point_type) => {
             // If timer exists, don't retrigger
             if (timer) {
                 return

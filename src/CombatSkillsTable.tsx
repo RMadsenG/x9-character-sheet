@@ -1,91 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PointAllocation from "./PointAllocation";
-import { POINT_TYPE } from "./Constants";
+import { HigherSkill, POINT_TYPE } from "./Constants";
+import { invoke } from "@tauri-apps/api/core";
 
-const SKILL_MENUS = [
-    {
-        "title": "Combat Skills",
-        "skill_subtypes": [
-            {
-                "subtype_name": "Weapons",
-                "list": [
-                    ["One-Handed Blade", "Finesse or Strength"],
-                    ["One-Handed Blunt", "Strength"],
-                    ["One-Handed Martial", "Finesse"],
-                    ["Two-Handed Blade", "Strength"],
-                    ["Two-Handed Blunt", "Strength"],
-                    ["Two-Handed Martial", "Finesse or Strength"],
-                    ["Short Firearm", "Finesse or Perception"],
-                    ["Long Firearm", "Strength or Perception"],
-                    ["Archery", "Strength"],
-                    ["Thrown Weapon", "Finesse"],
-                    ["Heavy Weapons", "Logic or Strength"],
-                    ["Unarmed", "Strength"]
-                ]
-            },
-            {
-                "subtype_name": "Magic",
-                "list": [
-                    ["Chronomancy", "Logic"],
-                    ["Elemental", "Character"],
-                    ["Magicka", "Logic or Character"],
-                    ["Protection", "Logic"],
-                    ["Psychic", "Character"],
-                    ["Techno", "Logic"],
-                    ["Forbidden", "Character"]
-                ]
-            },
-            {
-                "subtype_name": "Defense",
-                "list": [
-                    ["Light Armor", "Finesse"],
-                    ["Medium Armor", "Finesse or Strength"],
-                    ["Heavy Armor", "Strength"],
-                    ["Shields", "Strength"],
-                    ["Dodge", "Finesse"]
-                ]
-            }
-        ]
-    },
-    {
-        "title": "RP Skills",
-        "skill_subtypes": [
-            {
-                "subtype_name": "Soft Skills",
-                "list": [
-                    ["Tinkering", "Finesse or Logic"],
-                    ["Electronics", "Logic"],
-                    ["Botany", "Logic"],
-                    ["Zoology", "Character or Finesse"],
-                    ["First Aid", "Logic"],
-                    ["Medicine", "Logic"],
-                    ["Arcane Knowledge", "Logic or Character"],
-                    ["Planetary Piloting", "Finesse or Perception"],
-                    ["Planetary Navigation", "Logic"],
-                    ["Religion", "Character"]
-                ]
-            },
-            {
-                "subtype_name": "Hard Skills",
-                "list": [
-                    ["Fine Arts and Music", "Character"],
-                    ["Diplomacy", "Character"],
-                    ["History", "Logic"],
-                    ["Contrabanding", "Finesse"],
-                    ["Investigation", "Perception or Logic"],
-                    ["Espionage", "Character"],
-                    ["Scavenging", "Perception"]
-                ]
-            }
-        ]
-    }
-]
-const MAX_INDEX = SKILL_MENUS.length - 1
+
 
 function CombatSkillsTable() {
-    let [index, setIndex] = useState(0)
+    const [index, setIndex] = useState(0)
+    const [skillMenu, setSkillMenu] = useState<HigherSkill[] | undefined>()
+    useEffect(() => { invoke<[]>('get_skill_table').then(setSkillMenu).catch(console.log); }, [])
 
-    let one = SKILL_MENUS[index]
+    // Guard initial skill menu
+    if (!skillMenu) {
+        return <></>
+    }
+
+    const MAX_INDEX = skillMenu.length
+
+    let one = skillMenu[index]
     const point_type = index == 0 ? POINT_TYPE.VALOR : POINT_TYPE.RENOWN
 
     function up() {
@@ -98,9 +30,11 @@ function CombatSkillsTable() {
             setIndex(index - 1)
         }
     }
-    let type_table = one['skill_subtypes'].map((subtype, index) =>
+
+
+    let type_table = one['skill_subtypes'].map((subtype) =>
         // For each skill type (hard, soft)
-        <td key={index} valign="top" className="">
+        <td key={subtype.id} valign="top" className="">
             <table className="">
                 <thead>
                     <tr>
@@ -116,11 +50,11 @@ function CombatSkillsTable() {
                     </tr>
                     {
                         // For each skill
-                        subtype['list'].map(e =>
-                            <tr key={e[0] + index}>
-                                <td className="border p-px">{e[0]}</td>
-                                <td className="border p-px">{e[1]}</td>
-                                <PointAllocation key={subtype['subtype_name'] + '_' + e[0]} name={subtype['subtype_name'] + '_' + e[0]} point_types={[point_type, POINT_TYPE.FREE]} />
+                        subtype['skills'].map(e =>
+                            <tr key={subtype.id + e.id}>
+                                <td className="border p-px">{e.name}</td>
+                                <td className="border p-px">{e.parent_trait.join(' or ')}</td>
+                                <PointAllocation name={subtype.id + '_' + e.id} point_types={[point_type, POINT_TYPE.FREE]} parent_trait={e.parent_trait} />
                             </tr>
                         )
                     }
