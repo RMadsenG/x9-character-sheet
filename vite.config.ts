@@ -2,7 +2,12 @@ import { defineConfig } from "vite";
 import tailwindcss from '@tailwindcss/vite'
 import react from "@vitejs/plugin-react";
 
-// @ts-expect-error process is a nodejs global
+
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
@@ -33,4 +38,18 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        new_character: resolve(__dirname, 'newchar.html'),
+      },
+    },
+  },
 }));
+
+
+
+
+
+

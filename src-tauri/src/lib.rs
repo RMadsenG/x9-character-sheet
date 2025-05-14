@@ -42,7 +42,6 @@ fn set_point(
         for pt in &parent_traits {
             let trait_name = &("trait_".to_owned() + pt);
             let parent_level: i32 = 1 + state.get_level(trait_name);
-            println!("{trait_name} {parent_level} {new_level}");
             if parent_level >= new_level {
                 ok = Some(pt);
                 break;
@@ -216,6 +215,7 @@ pub fn run() {
                             }
                         });
                     // disable main window
+                    println!("Disabling window");
                     app.get_webview_window("main")
                         .unwrap()
                         .set_enabled(false)
