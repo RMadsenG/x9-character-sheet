@@ -77,9 +77,10 @@ fn set_max(
 
 #[tauri::command]
 fn set_new_char(
+    app: AppHandle,
     name: &str,
     species_id: &str,
-    character_state: tauri::State<'_, Mutex<Character>>,
+    character_state: tauri::State<'_, Mutex<Option<Character>>>,
     species_list: tauri::State<'_, SpeciesV>,
 ) -> Response {
     let species: SpeciesV = species_list
@@ -94,16 +95,25 @@ fn set_new_char(
         name: name.to_string(),
         species: species,
     };
-    *character_state.lock().unwrap() = new_char.clone();
+    *character_state.lock().unwrap() = Some(new_char.clone());
     let a: InvokeBody = serde_json::to_value(new_char).unwrap().into();
+    app.get_webview_window("new_characater")
+        .unwrap()
+        .close()
+        .unwrap();
     Response::new(a)
 }
 
 #[tauri::command]
-fn get_char(state: tauri::State<'_, Mutex<Character>>) -> Response {
-    println!("get name: {}", state.lock().unwrap().name);
-    let species: InvokeBody = serde_json::to_value(state.inner()).unwrap().into();
-    Response::new(species)
+fn get_char(state: tauri::State<'_, Mutex<Option<Character>>>) -> Result<Response, &str> {
+    let char_opt: Option<Character> = state.lock().unwrap().clone();
+
+    if let Some(char) = char_opt {
+        let species: InvokeBody = serde_json::to_value(char).unwrap().into();
+        Ok(Response::new(species))
+    } else {
+        Err("No Char yet defined")
+    }
 }
 
 #[tauri::command]
@@ -151,21 +161,65 @@ fn get_skill_table() -> Vec<HigherSkill> {
     return default_species::get_default_skill_table();
 }
 
+fn create_new_char_window(app: &AppHandle) {
+    let config: Vec<WindowConfig> = app
+        .config()
+        .app
+        .windows // Get Struct Vector
+        .clone() // Clone So into_iter can use it?
+        .into_iter() // So we can filter it
+        .filter(|x| x.label == "new_characater") // Filter it
+        .collect::<Vec<WindowConfig>>(); // De iterator it.
+
+    // I dont understand why I need to split this in two?
+    // Collect deletes the value or smth if this is all one line?
+    let config: &WindowConfig = config.get(0).unwrap();
+
+    // Create new Window
+    let handle: AppHandle = app.app_handle().clone();
+
+    tauri::WebviewWindowBuilder::from_config(app, config)
+        .unwrap()
+        .menu(MenuBuilder::new(app).build().unwrap())
+        .build()
+        .unwrap()
+        .on_window_event(move |event| {
+            match event {
+                WindowEvent::CloseRequested { api, .. } => {
+                    let char_exists = handle
+                        .state::<Mutex<Option<Character>>>()
+                        .lock()
+                        .unwrap()
+                        .is_some();
+                    if !char_exists {
+                        api.prevent_close();
+                    }
+                }
+
+                // Re enable main window and reload character after destroyed
+                WindowEvent::Destroyed => {
+                    handle
+                        .get_webview_window("main")
+                        .unwrap()
+                        .set_enabled(true)
+                        .unwrap();
+                    handle.emit_to("main", "reload_char", ()).unwrap();
+                }
+                _ => {}
+            }
+        });
+    // disable main window
+    println!("Disabling window");
+    app.get_webview_window("main")
+        .unwrap()
+        .set_enabled(false)
+        .unwrap();
+    return;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let default_species: SpeciesV = default_species::get_default_species();
-
-    // Setup Initial Character
-    let current_char = Character {
-        name: "Horatio Cornball".to_string(),
-        species: Species {
-            name: "Human".to_string(),
-            id: "human".to_string(),
-            starting_health: 10,
-            starting_mana: 20,
-            starting_speed: 100,
-        },
-    };
 
     tauri::Builder::default()
         .menu(|app| {
@@ -179,47 +233,7 @@ pub fn run() {
 
             match event.id().0.as_str() {
                 "new_character" => {
-                    let config: Vec<WindowConfig> = app
-                        .config()
-                        .app
-                        .windows // Get Struct Vector
-                        .clone() // Clone So into_iter can use it?
-                        .into_iter() // So we can filter it
-                        .filter(|x| x.label == "new_characater") // Filter it
-                        .collect::<Vec<WindowConfig>>(); // De iterator it.
-
-                    // I dont understand why I need to split this in two?
-                    // Collect deletes the value or smth if this is all one line?
-                    let config = config.get(0).unwrap();
-
-                    // Create new Window
-                    let handle: AppHandle = app.app_handle().clone();
-
-                    tauri::WebviewWindowBuilder::from_config(app, config)
-                        .unwrap()
-                        .menu(MenuBuilder::new(app).build().unwrap())
-                        .build()
-                        .unwrap()
-                        .on_window_event(move |event| {
-                            match event {
-                                // Re enable main window and reload character after destroyed
-                                WindowEvent::Destroyed => {
-                                    handle
-                                        .get_webview_window("main")
-                                        .unwrap()
-                                        .set_enabled(true)
-                                        .unwrap();
-                                    handle.emit_to("main", "reload_char", ()).unwrap();
-                                }
-                                _ => {}
-                            }
-                        });
-                    // disable main window
-                    println!("Disabling window");
-                    app.get_webview_window("main")
-                        .unwrap()
-                        .set_enabled(false)
-                        .unwrap();
+                    create_new_char_window(app);
                 }
                 _ => {
                     println!("unexpected menu event");
@@ -232,7 +246,20 @@ pub fn run() {
             valor_points: HashMap::from([("max".to_string(), 100)]),
         }))
         .manage(default_species)
-        .manage(Mutex::new(current_char))
+        .manage(Mutex::new(None::<Character>))
+        .setup(|app| {
+            // Open New Character Window if a new one doesn't exist yet
+            let app = app.app_handle();
+            let char_exists: bool = app
+                .state::<Mutex<Option<Character>>>()
+                .lock()
+                .unwrap()
+                .is_some();
+            if !char_exists {
+                create_new_char_window(app);
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_point,

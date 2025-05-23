@@ -4,15 +4,15 @@ import { invoke } from '@tauri-apps/api/core';
 import { Character } from "./Constants";
 
 function Nameplate() {
-    const [name, setName] = useState<string>("Horatio Cornbad all  Mc'goon Fart Fartmc")
-    const [species, setSpecies] = useState<string>("Frog")
+    const [name, setName] = useState<string>("")
+    const [species, setSpecies] = useState<string>("")
 
     function get_char() {
         invoke<Character>('get_char').then((character: Character) => {
             console.log(character)
             setName(character.name)
             setSpecies(character.species.name)
-        });
+        }).catch(e => console.log(e));
 
     }
 

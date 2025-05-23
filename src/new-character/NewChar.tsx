@@ -2,7 +2,6 @@ import { ChangeEvent, useEffect, useState } from "react";
 import "../App.css";
 import { invoke } from '@tauri-apps/api/core';
 import { Species, SpeciesList } from "../Constants";
-import { getCurrentWindow } from '@tauri-apps/api/window';
 
 
 export default function NewChar() {
@@ -31,9 +30,7 @@ export default function NewChar() {
 
     function go() {
         if (!name) return;
-        invoke('set_new_char', { name: name, speciesId: selectedSpecies?.id }).then(() => {
-            getCurrentWindow().close();
-        });
+        invoke('set_new_char', { name: name, speciesId: selectedSpecies?.id });
     }
 
     const options = speciesList.map((e) => <option value={e.id}>{e.name}</option>)
