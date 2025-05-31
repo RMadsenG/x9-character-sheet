@@ -9,7 +9,7 @@ use tauri::{
     utils::config::WindowConfig,
     AppHandle, Emitter, Manager, WindowEvent,
 };
-use types::{Character, HigherSkill, PointBank, Species, SpeciesV};
+use types::{Character, HigherSkill, PointBank, Species, SpeciesV, Stats};
 
 // All skills are matched with their parent trait.
 // Your skill level cannot exceed the level of the parent trait.
@@ -132,6 +132,63 @@ fn get_free(
     let free: i32 = state.get_free_of_type(point_type);
 
     return Ok(free);
+}
+
+#[tauri::command]
+fn get_stats<'a>(
+    character_state: tauri::State<'_, Mutex<Option<Character>>>,
+    point_bank_state: tauri::State<'_, Mutex<PointBank>>,
+) -> Result<Response, &'a str> {
+    let char_opt: Option<Character> = character_state.lock().unwrap().clone();
+    let point_bank = point_bank_state.lock().unwrap();
+    if char_opt.is_none() {
+        return Err("No Char yet defined");
+    }
+
+    let character = char_opt.unwrap();
+    let species = &character.species;
+
+    let mut health: i32 = species.starting_health;
+    let mut mana: i32 = species.starting_mana;
+    let mut speed: i32 = species.starting_speed;
+    let mut weight: i32 = species.starting_weight;
+    let mut fatigue: i32 = species.starting_fatigue;
+
+    // Strength
+    let strength: i32 = point_bank.get_level("trait_Strength") + 1;
+    // Every 3 points you have in Strength adds 1 to your total HP
+    health += strength / 3;
+    //Every 5 points you have in strength adds 1 kilo to your weight limit.
+    weight += strength / 5;
+
+    //Finesse
+    let finesse: i32 = point_bank.get_level("trait_Finesse") + 1;
+    //Every 20 points you have in Finesse adds 1 to your Speed stat.
+    speed += finesse / 20;
+
+    //Every 10 points you have in Strength or Finesse adds 1 to your fatigue stat. You only receive fatigue from the higher of either Finesse or Strength.
+    fatigue += (std::cmp::max(strength, finesse)) / 10;
+
+    //Perception
+    //Perception determines turn order for creatures with equal speed.
+
+    //Logic or Character
+    let logic: i32 = point_bank.get_level("trait_Logic") + 1;
+    let character: i32 = point_bank.get_level("trait_Character") + 1;
+
+    //Every 5 points you have in Logic or Character adds 1 to your MP stat. You only receive mana from the higher of either Logic or Character.
+    mana += (std::cmp::max(logic, character)) / 5;
+
+
+    let stats = Stats {
+        health: health,
+        mana: mana,
+        speed: speed,
+        weight: weight,
+        fatigue: fatigue,
+    };
+    let stats_response: InvokeBody = serde_json::to_value(stats).unwrap().into();
+    Ok(Response::new(stats_response))
 }
 
 #[tauri::command]
@@ -270,7 +327,8 @@ pub fn run() {
             set_new_char,
             get_level,
             set_max,
-            get_skill_table
+            get_skill_table,
+            get_stats
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

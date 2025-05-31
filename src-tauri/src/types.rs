@@ -22,12 +22,24 @@ pub struct Character {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub struct Stats {
+    pub health: i32,
+    pub speed: i32,
+    pub mana: i32,
+    pub weight: i32,
+    pub fatigue: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Species {
     pub name: String,
     pub id: String,
     pub starting_health: i32,
     pub starting_speed: i32,
     pub starting_mana: i32,
+    pub starting_weight: i32,
+    pub starting_fatigue: i32,
+    pub abilities: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

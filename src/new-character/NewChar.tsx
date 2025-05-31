@@ -59,6 +59,12 @@ export default function NewChar() {
                     <div className="px-5">
                         Mana: {selectedSpecies?.starting_mana}
                     </div>
+                    <div className="px-5">
+                        Weight: {selectedSpecies?.starting_weight}
+                    </div>
+                    <div className="px-5">
+                        Fatigue: {selectedSpecies?.starting_fatigue}
+                    </div>
                 </div>
                 <div className="m-auto flex py-5 justify-center">
                     <button className="border-2 border-solid rounded-xl p-1 " type="button" onClick={go}>Create Character</button>

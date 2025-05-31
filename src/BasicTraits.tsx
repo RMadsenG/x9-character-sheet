@@ -90,7 +90,7 @@ function BasicTraits() {
             })
 
             // Wait 1s, clear timer and reset display
-            timer = setTimeout(
+            timer = window.setTimeout(
                 () => {
                     timer = 0
                     setErrors((old) => {

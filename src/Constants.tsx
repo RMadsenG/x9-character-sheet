@@ -12,6 +12,22 @@ export const enum TRAIT_TYPE {
     CHARACTER = "Character"
 }
 
+export const enum STAT_TYPE {
+    HEALTH = "Health",
+    SPEED = "Speed",
+    MANA = "Mana",
+    FATIGUE = "Fatigue",
+    WEIGHT = "Weight"
+}
+
+export type Stats = {
+    health: number,
+    speed: number,
+    mana: number,
+    fatigue: number,
+    weight: number,
+}
+
 export type Character = {
     name: string,
     species: Species
@@ -23,6 +39,8 @@ export type Species = {
     starting_health: number,
     starting_speed: number,
     starting_mana: number,
+    starting_fatigue: number,
+    starting_weight: number
 };
 
 
