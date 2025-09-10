@@ -63,6 +63,93 @@ pub struct Skill {
     pub parent_trait: Vec<Trait>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct WeaponAttack {
+    pub name: String,
+    pub damage: String,
+    pub range: i32,
+    pub fire_rate: i32,
+    pub mag: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Weapon {
+    pub name: String,
+    pub requisite: String,
+    pub attacks: Vec<WeaponAttack>,
+
+    pub additional_behavior: Option<String>,
+    pub weight: f32,
+    pub ammo_type: String,
+    pub value: f32,
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Armor {
+    pub name: String,
+    pub requisite: String,
+    pub protects_against: String,
+    pub damage_reduction: i32,
+    pub durability: i32,
+    pub additional_behavior: String,
+    pub value: f32,
+    pub weight: f32,
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Item {
+    pub name: String,
+    pub requisite: String,
+    pub effects: String,
+    pub range: Option<i32>,
+    pub uses: i32,
+    pub value: f32,
+    pub weight: f32,
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Spell {
+    pub name: String,
+    pub skills: String,
+    pub requisite: Option<String>,
+    pub spell_type: String,
+    pub damage_type: Option<String>,
+    pub effect: String,
+    pub additional_behavior: Option<String>,
+    pub duration: i32,
+    pub range: Option<i32>,
+    pub mana_cost: i32,
+    pub components_ritual: Option<String>,
+    pub point_cost: i32,
+    pub flavor_text: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct InnateAttack {
+    pub name: String,
+    pub requisite: String,
+    pub attacks: String,
+    pub damage: String,
+    pub range: i32,
+    pub fire_rate: i32,
+    pub additional_behavior: Option<String>,
+    pub physical_requirements: String,
+    pub ft_cost: Option<i32>,
+    pub point_cost: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Inventory {
+    pub weapons: Vec<Weapon>,
+    pub armor: Vec<Armor>,
+    pub items: Vec<Item>,
+    pub spells: Vec<Spell>,
+    pub innate_attacks: Vec<InnateAttack>,
+}
+
 pub struct PointBank {
     pub free_points: PointMap,
     pub valor_points: PointMap,

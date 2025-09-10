@@ -1,18 +1,59 @@
+import { useState } from "react";
 import "./App.css";
 import BasicStats from "./BasicStats";
 import BasicTraits from "./BasicTraits";
 import CombatSkillsTable from "./CombatSkillsTable";
 import Nameplate from "./Nameplate";
 import PointBank from "./PointBank";
+import { Separator, Tab } from "./Tab";
+import Inventory from "./Inventory";
+
+const TAB_DATA = [
+  {
+    component: <CombatSkillsTable />,
+    name: "Character"
+  },
+  {
+    component: <Inventory />,
+    name: "Inventory"
+  },
+  {
+    component: <CombatSkillsTable />,
+    name: "Action"
+  },
+  {
+    component: undefined,
+    name: "separator"
+  },
+  {
+    component: <CombatSkillsTable />,
+    name: "Database"
+  }
+]
 
 function App() {
+  const [activeName, setActiveName] = useState(TAB_DATA[0]['name'])
+
+  function onTabClick(name: string) {
+    setActiveName(name)
+  }
+
+  const tabs = TAB_DATA.map((t, index) => {
+    if (t.name == 'separator') {
+      return <Separator key={index}/>
+    }
+    else {
+      return <Tab key={index} active={activeName == t.name} title={t.name} onClick={onTabClick} />
+    }
+  })
+  const active_tab = TAB_DATA.filter((t) => t.name == activeName)[0]['component']
+
   return (
     <main className="">
       <div className="topnav">
-        <a className="active" href="#home">Character</a>
-        <a className="" href="#news">Inventory</a>
-        <a href="#contact">Action</a>
-        <a className="ml-auto" href="#contact">Database</a>
+
+        {tabs}
+
       </div>
       <div className="flex m-2">
         <Nameplate />
@@ -20,7 +61,7 @@ function App() {
         <BasicTraits />
         <PointBank />
       </div>
-      <CombatSkillsTable />
+      {active_tab}
     </main>
   );
 }

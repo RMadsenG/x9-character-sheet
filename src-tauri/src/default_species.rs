@@ -1,6 +1,5 @@
 use crate::types::{
-    HigherSkill, Skill, SkillSubtype, Species, SpeciesV, Trait::Character, Trait::Finesse,
-    Trait::Logic, Trait::Perception, Trait::Strength,
+    Armor, HigherSkill, InnateAttack, Inventory, Item, Skill, SkillSubtype, Species, SpeciesV, Spell, Trait::{Character, Finesse, Logic, Perception, Strength}, Weapon, WeaponAttack
 };
 
 pub fn get_default_species() -> SpeciesV {
@@ -355,4 +354,85 @@ pub fn get_default_skill_table() -> Vec<HigherSkill> {
             ],
         },
     ]
+}
+
+pub fn get_default_inventory() -> Inventory {
+    Inventory {
+        weapons: vec![Weapon {
+            name: "Hand Cannon".to_string(),
+            requisite: "Short Firearm 1".to_string(),
+            attacks: vec![
+                WeaponAttack {
+                    name: "Shoot".to_string(),
+                    damage: "4d10 blunt, piercing, highvel".to_string(),
+                    range: 5,
+                    fire_rate: 1,
+                    mag: 1,
+                },
+                WeaponAttack {
+                    name: "Shoot Twice".to_string(),
+                    damage: "4d10 blunt, piercing, highvel".to_string(),
+                    range: 5,
+                    fire_rate: 1,
+                    mag: 1,
+                },
+            ],
+
+            additional_behavior: Some(
+                "Must be readied after reloading.\nCannot be aimed.".to_string(),
+            ),
+            weight: 1f32,
+            ammo_type: "1 large caliber".to_string(),
+            value: 1f32,
+            description: None,
+        }],
+        armor: vec![Armor {
+            name: "Vitals Plate".to_string(),
+            requisite: "Light Armor 1 or Heavy Armor 1".to_string(),
+            protects_against: "Unarmed, Slashing, Blunt, Piercing, Low Velocity, Medium Velocity".to_string(),
+            damage_reduction: 50,
+            durability: 50,
+            additional_behavior: "Durability immediately falls to 0 after one use.".to_string(),
+            value: 1f32,
+            weight: 2.0,
+            description: "A large case of medical items and supplies.".to_string(),
+        }],
+        items: vec![Item {
+            name: "Large First Aid Kit".to_string(),
+            requisite: "First Aid 50".to_string(),
+            effects: "Heals 1d8 per 10 pts in First Aid.\nEvery point healed reduces the uses of this item by 1.\nAt 0, this item is destroyed.".to_string(),
+            range: None,
+            uses: 100,
+            value: 1.0,
+            weight: 5.0,
+            description: "A large case of medical items and supplies.".to_string(),
+        }],
+        spells: vec![Spell { 
+            name: "Tricks".to_string(),
+            skills: "Character 1".to_string(),
+            requisite: None,
+            spell_type: "Ranged, Inevitable".to_string(),
+            damage_type: None,
+            effect: "Can create minor magic tricks such as lights from fingertips\nlittle illusions that have no real consequence outside of social interactions.".to_string(),
+            additional_behavior: None,
+            duration: 1,
+            range: Some(2),
+            mana_cost: 0,
+            components_ritual: None,
+            point_cost: 1,
+            flavor_text: None,
+        }],
+        innate_attacks: vec![InnateAttack {
+            name: "Jab Punch".to_string(),
+            requisite: "Unarmed 1".to_string(),
+            attacks: "Jab".to_string(),
+            damage: "1d4 unarmed".to_string(),
+            range: 1,
+            fire_rate: 2,
+            additional_behavior: None,
+            physical_requirements: "One Hand".to_string(),
+            ft_cost: None,
+            point_cost: None,
+        }],
+    }
 }

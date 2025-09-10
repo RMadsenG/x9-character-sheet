@@ -74,6 +74,85 @@ export type PointBankObjType = {
     [POINT_TYPE.RENOWN]: number
 }
 
+export type Item = {
+    name: string,
+    requisite: string,
+    effects: string,
+    range: number | null,
+    uses: number,
+    value: number,
+    weight: number,
+    description: string,
+}
+
+export type Armor = {
+    name: string,
+    requisite: string,
+    protects_against: string,
+    damage_reduction: number,
+    durability: number,
+    additional_behavior: string,
+    value: number,
+    weight: number,
+    description: string,
+}
+
+export type Weapon = {
+    name: string,
+    requisite: string,
+    attacks: WeaponAttack[],
+    additional_behavior: string | null,
+    weight: number,
+    ammo_type: string,
+    value: number,
+    description: string | null,
+}
+
+export type WeaponAttack = {
+    name: string,
+    damage: string,
+    range: number,
+    fire_rate: number,
+    mag: number,
+}
+
+export type Spell = {
+    name: string,
+    skills: string,
+    requisite: string | null,
+    spell_type: string,
+    damage_type: string | null,
+    effect: string,
+    additional_behavior: string | null,
+    duration: number,
+    range: number | null,
+    mana_cost: number,
+    components_ritual: string | null,
+    point_cost: number,
+    flavor_text: string | null,
+}
+
+export type InnateAttack = {
+    name: string,
+    requisite: string,
+    attacks: string,
+    damage: string,
+    range: number,
+    fire_rate: number,
+    additional_behavior: string | null,
+    physical_requirements: string,
+    ft_cost: number | null,
+    point_cost: number | null,
+}
+
+export type InventoryType = {
+    items: Item[],
+    weapons: Weapon[],
+    armor: Armor[],
+    spells: Spell[],
+    innate_attacks: InnateAttack[],
+}
+
 export const ERROR_STRING = "bg-radial from-red-500"
 export type PointBankType = Map<string, PointBankObjType>
 const a: PointBankType = new Map()

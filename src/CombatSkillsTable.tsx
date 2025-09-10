@@ -15,7 +15,7 @@ function CombatSkillsTable() {
         return <></>
     }
 
-    const MAX_INDEX = skillMenu.length
+    const MAX_INDEX = skillMenu.length - 1
 
     let one = skillMenu[index]
     const point_type = index == 0 ? POINT_TYPE.VALOR : POINT_TYPE.RENOWN
@@ -67,7 +67,6 @@ function CombatSkillsTable() {
         <table className="text-center border-separate border">
             <thead>
                 <tr>
-
                     <th colSpan={one['skill_subtypes'].length} className="text-xl">
                         <div className="flex p-5">
                             <button className="rounded-xl mx-4 px-2 py-1 my-auto outline-2" type="button" value="hi" onClick={down} >⬅️</button>

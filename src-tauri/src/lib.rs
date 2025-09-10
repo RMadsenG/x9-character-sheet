@@ -9,7 +9,7 @@ use tauri::{
     utils::config::WindowConfig,
     AppHandle, Emitter, Manager, WindowEvent,
 };
-use types::{Character, HigherSkill, PointBank, Species, SpeciesV, Stats};
+use types::{Character, HigherSkill, PointBank, Species, SpeciesV, Stats, Inventory};
 
 // All skills are matched with their parent trait.
 // Your skill level cannot exceed the level of the parent trait.
@@ -218,6 +218,11 @@ fn get_skill_table() -> Vec<HigherSkill> {
     return default_species::get_default_skill_table();
 }
 
+#[tauri::command]
+fn get_inventory() -> Inventory {
+    return default_species::get_default_inventory();
+}
+
 fn create_new_char_window(app: &AppHandle) {
     let config: Vec<WindowConfig> = app
         .config()
@@ -328,7 +333,8 @@ pub fn run() {
             get_level,
             set_max,
             get_skill_table,
-            get_stats
+            get_stats,
+            get_inventory
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
